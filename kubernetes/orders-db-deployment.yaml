@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orders-db
+  namespace: store-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: orders-db
+  template:
+    metadata:
+      labels:
+        app: orders-db
+    spec:
+      containers:
+      - name: orders-db
+        image: postgres:14
+        env:
+        - name: POSTGRES_USER
+          value: "orders_user"
+        - name: POSTGRES_PASSWORD
+          value: "orders_pass"
+        - name: POSTGRES_DB
+          value: "orders_db"
+        ports:
+        - containerPort: 5432
+        volumeMounts:
+        - name: orders-db-data
+          mountPath: /var/lib/postgresql/data
+      volumes:
+      - name: orders-db-data
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: orders-db
+  namespace: store-app
+spec:
+  selector:
+    app: orders-db
+  ports:
+  - protocol: TCP
+    port: 5432
+    targetPort: 5432
