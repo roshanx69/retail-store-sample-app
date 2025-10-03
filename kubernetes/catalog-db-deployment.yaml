@@ -32,7 +32,8 @@ spec:
           mountPath: /var/lib/mysql
       volumes:
       - name: catalog-db-data
-        emptyDir: {}
+        persistentVolumeClaim:
+          claimName: catalog-pvc
 ---
 apiVersion: v1
 kind: Service
