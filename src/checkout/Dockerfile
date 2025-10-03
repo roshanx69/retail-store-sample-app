@@ -6,12 +6,8 @@ RUN yarn install --frozen-lockfile
 RUN yarn build
 USER node
 
-
 FROM public.ecr.aws/amazonlinux/amazonlinux:2023
 
-# We tell DNF not to install Recommends and Suggests packages, which are
-# weak dependencies in DNF terminology, thus keeping our installed set of
-# packages as minimal as possible.
 RUN dnf --setopt=install_weak_deps=False install -q -y \
     nodejs20 \
     shadow-utils \
@@ -34,7 +30,7 @@ RUN useradd \
 WORKDIR /app
 USER appuser
 
-COPY --chown=node:node --from=build /usr/src/app/node_modules ./node_modules
-COPY --chown=node:node --from=build /usr/src/app/dist ./dist
+COPY --chown=appuser:appuser --from=build /usr/src/app/node_modules ./node_modules
+COPY --chown=appuser:appuser --from=build /usr/src/app/dist ./dist
 
 ENTRYPOINT [ "node", "dist/main.js" ]
