@@ -30,7 +30,8 @@ spec:
           mountPath: /var/lib/postgresql/data
       volumes:
       - name: orders-db-data
-        emptyDir: {}
+        persistentVolumeClaim:
+          claimName: orders-pvc
 ---
 apiVersion: v1
 kind: Service
