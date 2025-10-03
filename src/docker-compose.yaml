@@ -1,0 +1,137 @@
+version: '3.8'
+
+services:
+  dynamodb-local:
+    image: amazon/dynamodb-local
+    networks:
+      - store-app
+    ports:
+      - "8000:8000"
+    command: "-jar DynamoDBLocal.jar -inMemory -sharedDb"
+
+  cart:
+    image: roshanx/store-app-cart:latest
+    container_name: cart
+    networks:
+      - store-app
+    ports:
+      - "8081:8080"
+    environment:
+      AWS_ACCESS_KEY_ID: xxxxxxx
+      AWS_SECRET_ACCESS_KEY: xxxxxx
+      AWS_REGION: us-east-1
+      DYNAMODB_ENDPOINT: http://dynamodb-local:8000
+      DYNAMODB_TABLE: carts
+      JAVA_TOOL_OPTIONS: ""
+      SPRING_PROFILES_ACTIVE: "prod"
+    depends_on:
+      - dynamodb-local
+
+  catalog-db:
+    image: mysql:8
+    networks:
+      - store-app
+    environment:
+      MYSQL_ROOT_PASSWORD: catalog_root
+      MYSQL_DATABASE: catalog_db
+      MYSQL_USER: catalog_user
+      MYSQL_PASSWORD: catalog_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - catalog_db_data:/var/lib/mysql
+
+  catalog:
+    image: roshanx/store-app-catalog:latest
+    container_name: catalog
+    networks:
+      - store-app
+    ports:
+      - "8082:8080"
+    environment:
+      DB_HOST: catalog-db
+      DB_PORT: "3306"
+      DB_USER: catalog_user
+      DB_PASSWORD: catalog_pass
+      DB_NAME: catalog_db
+      GIN_MODE: release
+    depends_on:
+      - catalog-db
+
+  redis:
+    image: redis:7
+    networks:
+      - store-app
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  checkout:
+    image: roshanx/store-app-checkout:latest
+    container_name: checkout
+    networks:
+      - store-app
+    ports:
+      - "8084:8080"
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      NODE_ENV: "production"
+    depends_on:
+      - redis
+
+  orders-db:
+    image: postgres:14
+    networks:
+      - store-app
+    environment:
+      POSTGRES_USER: orders_user
+      POSTGRES_PASSWORD: orders_pass
+      POSTGRES_DB: orders_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - orders_db_data:/var/lib/postgresql/data
+
+  orders:
+    image: roshanx/store-app-checkout:latest
+    container_name: orders
+    networks:
+      - store-app
+    ports:
+      - "8083:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://orders-db:5432/orders_db
+      SPRING_DATASOURCE_USERNAME: orders_user
+      SPRING_DATASOURCE_PASSWORD: orders_pass
+      SPRING_PROFILES_ACTIVE: "prod"
+      JAVA_TOOL_OPTIONS: ""
+    depends_on:
+      - orders-db
+
+  ui:
+    image: roshanx/store-app-ui:latest
+    container_name: ui
+    networks:
+      - store-app
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: "prod"
+      JAVA_TOOL_OPTIONS: ""
+    depends_on:
+      - cart
+      - catalog
+      - orders
+      - checkout
+
+
+networks:
+  store-app:
+    driver: bridge
+
+volumes:
+  catalog_db_data:
+  orders_db_data:
+  redis_data:
