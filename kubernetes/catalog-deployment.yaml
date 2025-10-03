@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalog
+  namespace: store-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: catalog
+  template:
+    metadata:
+      labels:
+        app: catalog
+    spec:
+      containers:
+      - name: catalog
+        image: roshanx/store-app-catalog:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: DB_HOST
+          value: "catalog-db"
+        - name: DB_PORT
+          value: "3306"
+        - name: DB_USER
+          value: "catalog_user"
+        - name: DB_PASSWORD
+          value: "catalog_pass"
+        - name: DB_NAME
+          value: "catalog_db"
+        - name: GIN_MODE
+          value: "release"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: catalog
+  namespace: store-app
+spec:
+  selector:
+    app: catalog
+  ports:
+  - protocol: TCP
+    port: 8082
+    targetPort: 8080
