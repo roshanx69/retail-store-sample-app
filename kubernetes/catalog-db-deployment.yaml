@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalog-db
+  namespace: store-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: catalog-db
+  template:
+    metadata:
+      labels:
+        app: catalog-db
+    spec:
+      containers:
+      - name: catalog-db
+        image: mysql:8
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: "catalog_root"
+        - name: MYSQL_DATABASE
+          value: "catalog_db"
+        - name: MYSQL_USER
+          value: "catalog_user"
+        - name: MYSQL_PASSWORD
+          value: "catalog_pass"
+        ports:
+        - containerPort: 3306
+        volumeMounts:
+        - name: catalog-db-data
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: catalog-db-data
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: catalog-db
+  namespace: store-app
+spec:
+  selector:
+    app: catalog-db
+  ports:
+  - protocol: TCP
+    port: 3306
+    targetPort: 3306
