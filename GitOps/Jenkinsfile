@@ -1,0 +1,64 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(name: 'UI_TAG', description: 'Frontend Docker Image Tag', defaultValue: 'latest')
+        string(name: 'CART_TAG', description: 'Backend Docker Image Tag', defaultValue: 'latest')
+        string(name: 'ORDERS_TAG', description: 'Backend Docker Image Tag', defaultValue: 'latest')
+        string(name: 'CATALOG_TAG', description: 'Backend Docker Image Tag', defaultValue: 'latest')
+        string(name: 'CHECKOUT_TAG', description: 'Backend Docker Image Tag', defaultValue: 'latest')
+    }
+
+    environment {
+        GITHUB_CREDENTIALS = 'Github-cred'
+        GITHUB_REPO = 'https://github.com/Roshanx96/retail-store-sample-app.git'  // ✅ FIX REPO URL
+    }
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                git branch: 'main', credentialsId: "${env.GITHUB_CREDENTIALS}", url: "${env.GITHUB_REPO}"
+            }
+        }
+
+        stage('Update Kubernetes Manifests') {
+            steps {
+                sh '''
+                    sed -i "s|roshanx/store-app-ui:.*|roshanx/store-app-ui:${UI_TAG}|g" kubernetes/ui-deployment.yaml
+                    sed -i "s|roshanx/store-app-orders:.*|roshanx/store-app-orders:${ORDERS_TAG}|g" kubernetes/orders-deployment.yaml
+                    sed -i "s|roshanx/store-app-checkout:.*|roshanx/store-app-checkout:${CHECKOUT_TAG}|g" kubernetes/checkout-deployment.yaml
+                    sed -i "s|roshanx/store-app-catalog:.*|roshanx/store-app-catalog:${CATALOG_TAG}|g" kubernetes/catalog-deployment.yaml
+                    sed -i "s|roshanx/store-app-cart:.*|roshanx/store-app-cart:${CART_TAG}|g" kubernetes/cart-deployment.yaml
+                '''
+            }
+        }
+
+        stage('Commit and Push Changes') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: "${env.GITHUB_CREDENTIALS}", usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
+                    sh '''
+                        git add kubernetes/ui-deployment.yaml kubernetes/orders-deployment.yaml kubernetes/checkout-deployment.yaml kubernetes/catalog-deployment.yaml kubernetes/cart-deployment.yaml
+
+                        # Commit only if there are changes
+                        if ! git diff --cached --quiet; then
+                            git commit -m "Update Kubernetes manifests with new Docker tags [CI/CD]"
+                            git remote set-url origin https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/Roshanx96/retail-store-sample-app.git
+                            git push origin main
+                        else
+                            echo "No changes to commit"
+                        fi
+                    '''
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ store-app CD Pipeline Successful"
+        }
+        failure {
+            echo "❌ store-app CD Pipeline Failed"
+        }
+    }
+}
