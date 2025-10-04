@@ -15,10 +15,11 @@ spec:
     spec:
       containers:
       - name: dynamodb-local
-        image: amazon/dynamodb-local
+        image: amazon/dynamodb-local:latest
         ports:
         - containerPort: 8000
-        command: ["-jar", "DynamoDBLocal.jar", "-inMemory", "-sharedDb"]
+        command: ["java"]   # ✅ executable
+        args: ["-jar", "DynamoDBLocal.jar", "-inMemory", "-sharedDb"]  # ✅ arguments
 ---
 apiVersion: v1
 kind: Service
