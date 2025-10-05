@@ -2,16 +2,16 @@ pipeline {
     agent any
 
     parameters {
-        string(name: 'UI_TAG', description: 'Frontend Docker Image Tag', defaultValue: 'latest')
-        string(name: 'CART_TAG', description: 'Backend Docker Image Tag', defaultValue: 'latest')
-        string(name: 'ORDERS_TAG', description: 'Backend Docker Image Tag', defaultValue: 'latest')
-        string(name: 'CATALOG_TAG', description: 'Backend Docker Image Tag', defaultValue: 'latest')
-        string(name: 'CHECKOUT_TAG', description: 'Backend Docker Image Tag', defaultValue: 'latest')
+        string(name: 'UI_TAG', description: 'Ui Docker Image Tag', defaultValue: 'latest')
+        string(name: 'CART_TAG', description: 'Cart Docker Image Tag', defaultValue: 'latest')
+        string(name: 'ORDERS_TAG', description: 'Orders Docker Image Tag', defaultValue: 'latest')
+        string(name: 'CATALOG_TAG', description: 'Catalog Docker Image Tag', defaultValue: 'latest')
+        string(name: 'CHECKOUT_TAG', description: 'Checkout Docker Image Tag', defaultValue: 'latest')
     }
 
     environment {
         GITHUB_CREDENTIALS = 'Github-cred'
-        GITHUB_REPO = 'https://github.com/Roshanx96/retail-store-sample-app.git'  // ✅ FIX REPO URL
+        GITHUB_REPO = 'https://github.com/roshanx69/retail-store-sample-app.git'  // ✅ FIX REPO URL
     }
 
     stages {
@@ -42,7 +42,7 @@ pipeline {
                         # Commit only if there are changes
                         if ! git diff --cached --quiet; then
                             git commit -m "Update Kubernetes manifests with new Docker tags [CI/CD]"
-                            git remote set-url origin https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/Roshanx96/retail-store-sample-app.git
+                            git remote set-url origin https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/roshanx69/retail-store-sample-app.git
                             git push origin main
                         else
                             echo "No changes to commit"
