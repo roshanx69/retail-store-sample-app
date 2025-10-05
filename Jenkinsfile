@@ -2,11 +2,11 @@ pipeline {
     agent any
 
     parameters {
-        string(name: 'UI_TAG', description: 'Frontend Docker Image Tag', defaultValue: 'latest')
-        string(name: 'CART_TAG', description: 'Backend Docker Image Tag', defaultValue: 'latest')
-        string(name: 'ORDERS_TAG', description: 'Backend Docker Image Tag', defaultValue: 'latest')
-        string(name: 'CATALOG_TAG', description: 'Backend Docker Image Tag', defaultValue: 'latest')
-        string(name: 'CHECKOUT_TAG', description: 'Backend Docker Image Tag', defaultValue: 'latest')
+        string(name: 'UI_TAG', description: 'Ui Docker Image Tag', defaultValue: 'latest')
+        string(name: 'CART_TAG', description: 'Cart Docker Image Tag', defaultValue: 'latest')
+        string(name: 'ORDERS_TAG', description: 'Orders Docker Image Tag', defaultValue: 'latest')
+        string(name: 'CATALOG_TAG', description: 'Catalog Docker Image Tag', defaultValue: 'latest')
+        string(name: 'CHECKOUT_TAG', description: 'Checkout Docker Image Tag', defaultValue: 'latest')
     }
 
     environment {
@@ -27,7 +27,7 @@ pipeline {
             steps {
                 git branch: 'main',
                     credentialsId: env.GITHUB_CREDENTIALS,
-                    url: 'https://github.com/Roshanx96/retail-store-sample-app.git'  // ✅ FIX REPO URL
+                    url: 'https://github.com/roshanx69/retail-store-sample-app.git'  // ✅ FIX REPO URL
             }
         }
 
